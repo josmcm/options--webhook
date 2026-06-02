@@ -1,24 +1,15 @@
 const http = require("http");
-
 let marketData = {};
 let lastUpdate = null;
-
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Content-Type": "application/json",
 };
-
 const server = http.createServer((req, res) => {
-  if (req.method === "OPTIONS") {
-    res.writeHead(204, CORS);
-    res.end();
-    return;
-  }
-
+  if (req.method === "OPTIONS") { res.writeHead(204, CORS); res.end(); return; }
   const url = req.url.split("?")[0];
-
   if (req.method === "POST" && url === "/webhook") {
     let body = "";
     req.on("data", chunk => body += chunk);
@@ -26,11 +17,7 @@ const server = http.createServer((req, res) => {
       try {
         const data = JSON.parse(body);
         const ticker = (data.ticker || "").toUpperCase().trim();
-        if (!ticker) {
-          res.writeHead(400, CORS);
-          res.end(JSON.stringify({ error: "No ticker provided" }));
-          return;
-        }
+        if (!ticker) { res.writeHead(400, CORS); res.end(JSON.stringify({ error: "No ticker" })); return; }
         marketData[ticker] = {
           ticker,
           price:      parseFloat(data.price)      || marketData[ticker]?.price || 0,
@@ -51,7 +38,7 @@ const server = http.createServer((req, res) => {
           updatedAt:  new Date().toISOString(),
         };
         lastUpdate = new Date().toISOString();
-        console.log(`Updated: ${ticker} @ $${marketData[ticker].price}`);
+        console.log("Updated: " + ticker + " @ $" + marketData[ticker].price);
         res.writeHead(200, CORS);
         res.end(JSON.stringify({ ok: true, ticker, price: marketData[ticker].price }));
       } catch (e) {
@@ -61,48 +48,40 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
-
   if (req.method === "GET" && url === "/data") {
     res.writeHead(200, CORS);
     res.end(JSON.stringify({ data: marketData, lastUpdate, count: Object.keys(marketData).length }));
     return;
   }
-
   if (req.method === "GET" && url.startsWith("/data/")) {
     const ticker = url.split("/data/")[1].toUpperCase();
-    if (marketData[ticker]) {
-      res.writeHead(200, CORS);
-      res.end(JSON.stringify(marketData[ticker]));
-    } else {
-      res.writeHead(404, CORS);
-      res.end(JSON.stringify({ error: "No data for " + ticker }));
-    }
+    if (marketData[ticker]) { res.writeHead(200, CORS); res.end(JSON.stringify(marketData[ticker])); }
+    else { res.writeHead(404, CORS); res.end(JSON.stringify({ error: "No data for " + ticker })); }
     return;
   }
-
   if (req.method === "GET" && url === "/health") {
     res.writeHead(200, CORS);
     res.end(JSON.stringify({ status: "ok", tickers: Object.keys(marketData).length, lastUpdate }));
     return;
   }
-
   if (req.method === "GET" && url === "/") {
     res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(`<html style="background:#060608;color:#00ff9d;font-family:monospace;padding:40px">
-      <h1>WEEKLY OPTIONS WEBHOOK SERVER</h1>
-      <p>Status: LIVE</p>
-      <p>Tickers: ${Object.keys(marketData).length}</p>
-      <p>Last update: ${lastUpdate || "No data yet"}</p>
-    </html>`);
+    res.end("<html style='background:#060608;color:#00ff9d;font-family:monospace;padding:40px'><h1>WEBHOOK SERVER LIVE</h1><p>Tickers: " + Object.keys(marketData).length + "</p></html>");
     return;
   }
-
   res.writeHead(404, CORS);
   res.end(JSON.stringify({ error: "Not found" }));
 });
-
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log("Webhook server running on port " + PORT);
-});
-Once pasted click Commit changes at the bottom. Then tell me and we'll add package.json next.
+server.listen(PORT, () => { console.log("Webhook server running on port " + PORT); });
+
+Click Commit changes
+
+Then go back to Render → Manual Deploy → Deploy latest commit.You said: all of it ?all of it ?2:24 PMClaude responded: Yes — select ALL the text in the file and delete it all, then paste the new code above to replace it completely.Yes — select ALL the text in the file and delete it all, then paste the new code above to replace it completely.
+The easiest way:
+
+Click inside the text box
+Press Ctrl+A to select everything
+Press Delete to clear it
+Then paste the new code
+
